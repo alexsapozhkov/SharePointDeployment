@@ -1,0 +1,11 @@
+name: CI
+on: [push]
+jobs:
+  SmallNonHAMinrole-Binaries-SE-Win2022:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v2
+      - name: Installing Prerequisites
+        run: |
+          Install-Module -Name Az -Force
+          Install-Module -Name AutomatedLab -Force
