@@ -6,10 +6,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Installing Prerequisites
+        shell: powershell
         run: |
           $PSversionTable
           .\InstallPrerequisites.ps1
       - name: Authenticate in Azure
+        shell: powershell
         env:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
@@ -21,5 +23,6 @@ jobs:
           Connect-AzAccount -Credential $azureCredential -ServicePrincipal -TenantId $env:ARM_TENANT_ID | Out-Null;
           Select-AzSubscription -SubscriptionId $env:ARM_SUBSCRIPTION_ID;
       - name: Provision Lab
+        shell: powershell
         run: |
           .\DeploySharePointEnvironment.ps1
