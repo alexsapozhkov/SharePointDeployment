@@ -5,12 +5,11 @@ jobs:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v2
-      - name: Installing Prerequisites
+      - name: Install Prerequisites
         shell: powershell
         run: |
-          $PSversionTable
           .\InstallPrerequisites.ps1
-      - name: Authenticate in Azure
+      - name: Provision Lab
         shell: powershell
         env:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
@@ -22,7 +21,4 @@ jobs:
           $azureCredential = New-Object System.Management.Automation.PSCredential( $env:ARM_CLIENT_ID, $securedPassword );
           Connect-AzAccount -Credential $azureCredential -ServicePrincipal -TenantId $env:ARM_TENANT_ID | Out-Null;
           Select-AzSubscription -SubscriptionId $env:ARM_SUBSCRIPTION_ID;
-      - name: Provision Lab
-        shell: powershell
-        run: |
           .\DeploySharePointEnvironment.ps1
