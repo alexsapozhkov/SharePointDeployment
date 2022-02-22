@@ -18,7 +18,11 @@ function Ensure-Module
     )
 
     $moduleInGallery = Find-Module -Name $Name
-    $moduleOnServer = Get-InstalledModule $Name -ErrorAction Ignore
+    try {
+        $moduleOnServer = Get-InstalledModule $Name
+    } catch {
+        Write-Host "No panic, the module is not installed but we will fix that"
+    }
 
     # If AutomatedLab doesn't exist or version is lower than the version in the PS Gallery
     if ($null -eq $moduleOnServer -or $moduleInGallery.Version -lt $moduleOnServer.Version)
