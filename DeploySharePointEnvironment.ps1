@@ -17,8 +17,10 @@ function Ensure-Module
         $Name
     )
 
+    Write-Host "Reading module versions from Gallery"
     $moduleInGallery = Find-Module -Name $Name
     try {
+        Write-Host "Reading module versions locally"
         $moduleOnServer = Get-InstalledModule $Name
     } catch {
         Write-Host "No panic, the module is not installed but we will fix that"
