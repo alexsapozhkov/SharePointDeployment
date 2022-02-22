@@ -1,11 +1,17 @@
-name: CI
-on: [push]
+name: Test PowerShell on Ubuntu
+on: push
+
 jobs:
-  SmallNonHAMinrole-Binaries-SE-Win2022:
-    runs-on: windows-2022
+  pester-test:
+    name: Pester test
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Installing Prerequisites
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Perform a Pester test from the command-line
+        shell: pwsh
+        run: Test-Path resultsfile.log | Should -Be $true
+      - name: Perform a Pester test from the Tests.ps1 file
+        shell: pwsh
         run: |
-          Install-Module -Name Az -Force
-          Install-Module -Name AutomatedLab -Force
+          Invoke-Pester Unit.Tests.ps1 -Passthru
