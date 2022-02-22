@@ -7,5 +7,18 @@ jobs:
       - uses: actions/checkout@v2
       - name: Installing Prerequisites
         run: |
-          Install-Module -Name Az -Force
-          Install-Module -Name AutomatedLab -Force
+          .\InstallPrerequisites.ps1
+      - name: Authenticate in Azure
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+        run: |
+          $securedPassword = ConvertTo-SecureString $env:ARM_CLIENT_SECRET -AsPlainText -Force;
+          $azureCredential = New-Object System.Management.Automation.PSCredential( $env:ARM_CLIENT_ID, $securedPassword );
+          Connect-AzAccount -Credential $azureCredential -ServicePrincipal -TenantId $env:ARM_TENANT_ID | Out-Null;
+          Select-AzSubscription -SubscriptionId $env:ARM_SUBSCRIPTION_ID;
+      - name: Provision Lab
+        run: |
+          .\DeploySharePointEnvironment.ps1
