@@ -9,6 +9,7 @@ jobs:
         shell: powershell
         run: |
           .\InstallPrerequisites.ps1
+          Get-Module AutomatedLab* -List | Select Name,Version
       - name: Provision Lab
         shell: powershell
         env:
