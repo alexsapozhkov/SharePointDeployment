@@ -16,7 +16,7 @@ function Ensure-Module
     # If AutomatedLab doesn't exist or version is lower than the version in the PS Gallery
     if ($null -eq $moduleOnServer -or $moduleInGallery.Version -lt $moduleOnServer.Version)
     {
-        Install-Module -Name $Name -Force -AllowClobber
+        Install-Module -Name $Name -Force -SkipPublisherCheck -AllowClobber
     }
 }
 

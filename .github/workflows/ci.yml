@@ -22,5 +22,4 @@ jobs:
           $azureCredential = New-Object System.Management.Automation.PSCredential( $env:ARM_CLIENT_ID, $securedPassword );
           Connect-AzAccount -Credential $azureCredential -ServicePrincipal -TenantId $env:ARM_TENANT_ID | Out-Null;
           Select-AzSubscription -SubscriptionId $env:ARM_SUBSCRIPTION_ID;
-          Import-Module AutomatedLab
           .\DeploySharePointEnvironment.ps1

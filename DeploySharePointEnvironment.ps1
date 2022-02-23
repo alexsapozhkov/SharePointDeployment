@@ -1,4 +1,4 @@
-﻿#requires -runAs
+# requires -runAs
 
 # Script variables - Now hardcoded, must be parameterized
 $labName = 'SPDev'
@@ -7,39 +7,9 @@ $vitualizationEngine = 'Azure'
 $azureDefaultLocation = 'West Europe'
 $password = 'MySecretPassword!'
 
-####### FUNCTIONS #######
-function Ensure-Module
-{
-    param
-    (
-        [Parameter(Mandatory = $true)]
-        [System.String]
-        $Name
-    )
-
-    Write-Host "Reading module versions from Gallery"
-    $moduleInGallery = Find-Module -Name $Name
-    try {
-        Write-Host "Reading module versions locally"
-        $moduleOnServer = Get-InstalledModule $Name
-    } catch {
-        Write-Host "No panic, the module is not installed but we will fix that"
-    }
-
-    # If AutomatedLab doesn't exist or version is lower than the version in the PS Gallery
-    if ($null -eq $moduleOnServer -or $moduleInGallery.Version -lt $moduleOnServer.Version)
-    {
-        Install-Module -Name $Name -Force
-    }
-}
-
-####### START SCRIPT #######
-
-Ensure-Module -Name Az
-Ensure-Module -Name AutomatedLab
-
 # Automation: Configure telemetry opt-in or opt-out
 [Environment]::SetEnvironmentVariable('AUTOMATEDLAB_TELEMETRY_OPTIN', 'yes', 'Machine')
+$env:AUTOMATEDLAB_TELEMETRY_OPTIN = 'true'
 
 if ((Test-Path -Path 'C:\LabSources') -eq $false)
 {
