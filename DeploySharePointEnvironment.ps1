@@ -10,6 +10,7 @@ $password = 'MySecretPassword!'
 # Automation: Configure telemetry opt-in or opt-out
 [Environment]::SetEnvironmentVariable('AUTOMATEDLAB_TELEMETRY_OPTIN', 'yes', 'Machine')
 $env:AUTOMATEDLAB_TELEMETRY_OPTIN = 'true'
+Import-Module AutomatedLab
 
 if ((Test-Path -Path 'C:\LabSources') -eq $false)
 {
