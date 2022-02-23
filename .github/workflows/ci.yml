@@ -8,7 +8,6 @@ jobs:
       - name: Install Prerequisites
         shell: powershell
         run: |
-          Uninstall-AzureRm
           .\InstallPrerequisites.ps1
       - name: Provision Lab
         shell: powershell
