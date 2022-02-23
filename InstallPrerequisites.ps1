@@ -23,4 +23,5 @@ function Ensure-Module
 ####### START SCRIPT #######
 
 Ensure-Module -Name Az
+Uninstall-AzureRm
 Ensure-Module -Name AutomatedLab
