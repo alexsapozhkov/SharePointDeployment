@@ -1,29 +1,53 @@
+[CmdletBinding()]
+param
+(
+    [Parameter(Mandatory = $true)][ValidateSet("SmallNonHAMinrole")]
+    [String]$Topology,
+    [Parameter(Mandatory = $true)][ValidateSet("Binaries")]
+    [String]$ProvisioningLevel,
+    [Parameter(Mandatory = $false)][ValidateSet("SE")]
+    [String]$SharePointVersion = "SE",
+    [Parameter(Mandatory = $false)]
+    [String]$LabName = 'SPDev',
+    [Parameter(Mandatory = $false)]
+    [String]$DomainName = 'contoso.com',
+    [Parameter(Mandatory = $false)]
+    [String]$VitualizationEngine = 'Azure',
+    [Parameter(Mandatory = $false)]
+    [String]$AzureDefaultLocation = 'West Europe',
+    [Parameter(Mandatory = $false)]
+    [String]$AdminPassword = 'MySecretPassword!',
+    [Parameter(Mandatory = $false)]
+    [String]$SPDC1Name = 'SPDC1',
+    [Parameter(Mandatory = $false)]
+    [String]$SPDC1Size,
+    [Parameter(Mandatory = $false)]
+    [String]$SPDB1Name = 'SPDB1',
+    [Parameter(Mandatory = $false)]
+    [String]$SPDB1Size,
+    [Parameter(Mandatory = $false)]
+    [String]$SPFE1Name = 'SPFE1',
+    [Parameter(Mandatory = $false)]
+    [String]$SPFE1Size,
+    [Parameter(Mandatory = $false)]
+    [String]$SPBE1Name = 'SPBE1',
+    [Parameter(Mandatory = $false)]
+    [String]$SPBE1Size
+)
+
 # requires -runAs
-
-# Script variables - Now hardcoded, must be parameterized
-$labName = 'SPDev'
-$domainName = 'contoso.com'
-$vitualizationEngine = 'Azure'
-$azureDefaultLocation = 'West Europe'
-$password = 'MySecretPassword!'
-
-# Automation: Configure telemetry opt-in or opt-out
-[Environment]::SetEnvironmentVariable('AUTOMATEDLAB_TELEMETRY_OPTIN', 'yes', 'Machine')
-$env:AUTOMATEDLAB_TELEMETRY_OPTIN = 'true'
-Import-Module AutomatedLab
 
 if ((Test-Path -Path 'C:\LabSources') -eq $false)
 {
     New-LabSourcesFolder -Drive C -Force
 }
 
-# Copy all required ISO files to
-"$labsources\ISOs" # $labSources is a dynamic variable and will point to lab sources
+# Copy all required ISO files to "$labsources\ISOs" # $labSources is a dynamic variable and will point to lab sources
 
 # Create new AL Lab definition
-New-LabDefinition -Name $labname -DefaultVirtualizationEngine $vitualizationEngine
+New-LabDefinition -Name $LabName -DefaultVirtualizationEngine $VitualizationEngine
 
-if ($vitualizationEngine -eq 'Azure')
+if ($VitualizationEngine -eq 'Azure')
 {
     # Check if logged into Azure, else logon
     $context = Get-AzContext
@@ -33,34 +57,34 @@ if ($vitualizationEngine -eq 'Azure')
     }
 
     # Add current Azure subscription to new lab definition
-    Add-LabAzureSubscription -DefaultLocationName $azureDefaultLocation
+    Add-LabAzureSubscription -DefaultLocationName $AzureDefaultLocation
 }
 
 # Add virtual network
-Add-LabVirtualNetworkDefinition -Name "$($labname)VNet" -AddressSpace 192.168.123.1/24
+# Add-LabVirtualNetworkDefinition -Name "$($LabName)VNet" -AddressSpace 192.168.123.1/24
 
 # Add domain details
-Add-LabDomainDefinition -Name $domainName -AdminUser Install -AdminPassword $password
+Add-LabDomainDefinition -Name $DomainName -AdminUser Install -AdminPassword $AdminPassword
 
 # Set Install credentials
-Set-LabInstallationCredential -Username Install -Password $password
+Set-LabInstallationCredential -Username Install -Password $AdminPassword
 
-#Get-LabAvailableOperatingSystem -Azure -Location $azureDefaultLocation
+#Get-LabAvailableOperatingSystem -Azure -Location $AzureDefaultLocation
 #Get-LabAzureLocation
 #Get-LabAzureAvailableRoleSize -Location 'West Europe'
 
 $PSDefaultParameterValues = @{
     'Add-LabMachineDefinition:ToolsPath'= "$labSources\Tools"
     'Add-LabMachineDefinition:DomainName' = 'contoso.com'
-    'Add-LabMachineDefinition:OperatingSystem' = 'Windows Server 2022 Datacenter (Desktop Experience)'
+    'Add-LabMachineDefinition:OperatingSystem' = 'Windows Server 2019 Datacenter (Desktop Experience)'
 }
 
 # Syncing local LabSources with Azure
-Sync-LabAzureLabSources -SkipIsos
+# Sync-LabAzureLabSources -SkipIsos
 
 # Adding ISO Images to LabSources
-Add-LabIsoImageDefinition -Name SQLServer2019 -Path $labSources\ISOs\en_sql_server_2019_standard_x64_dvd_814b57aa.iso
-Add-LabIsoImageDefinition -Name SharePoint2019 -Path $labSources\ISOs\en_sharepoint_server_2019_x64_dvd_68e34c9e.iso
+#Add-LabIsoImageDefinition -Name SQLServer2019 -Path $labSources\ISOs\en_sql_server_2019_standard_x64_dvd_814b57aa.iso
+#Add-LabIsoImageDefinition -Name SharePoint2019 -Path $labSources\ISOs\en_sharepoint_server_2019_x64_dvd_68e34c9e.iso
 
 # Adding Post Install Activities
 $dcPostInstallActivity = @()
@@ -71,12 +95,20 @@ $dcPostInstallActivity += Get-LabPostInstallationActivity -ScriptFileName 'Prepa
 $sqlRole = Get-LabMachineRoleDefinition -Role SQLServer2019 -Properties @{ Collation = "Latin1_General_CI_AS_KS_WS"; Features = 'SQL,Tools'}
 
 # Adding Lab VMs
-Add-LabMachineDefinition -Name SPDC1 -Roles RootDC -PostInstallationActivity $dcPostInstallActivity # Domain Controller
-Add-LabMachineDefinition -Name SPDB1 -Roles $sqlRole # SQL Server
+$azureProperties = $null;
+if ($SPDC1Size) {$azureProperties = @{RoleSize = $SPDC1Size}}
+Add-LabMachineDefinition -Name $SPDC1Name -Roles RootDC -PostInstallationActivity $dcPostInstallActivity -AzureProperties $azureProperties # Domain Controller
+$azureProperties = $null;
+if ($SPDB1Size) {$azureProperties = @{RoleSize = $SPDB1Size}}
+Add-LabMachineDefinition -Name $SPDB1Name -Roles $sqlRole -AzureProperties $azureProperties # SQL Server
 #SHAREPOINT ROLE CURRENTLY NOT WORKING# Add-LabMachineDefinition -Name SPFE1 -Roles SharePoint2019 # SharePoint Front End
 #SHAREPOINT ROLE CURRENTLY NOT WORKING# Add-LabMachineDefinition -Name SPBE1 -Roles SharePoint2019 # SharePoint Application
-Add-LabMachineDefinition -Name SPFE1 # SharePoint Front End
-Add-LabMachineDefinition -Name SPBE1 # SharePoint Application
+$azureProperties = $null;
+if ($SPFE1Size) {$azureProperties = @{RoleSize = $SPFE1Size}}
+Add-LabMachineDefinition -Name $SPFE1Name -AzureProperties $azureProperties # SharePoint Front End
+$azureProperties = $null;
+if ($SPBE1Size) {$azureProperties = @{RoleSize = $SPBE1Size}}
+Add-LabMachineDefinition -Name $SPBE1Name -AzureProperties $azureProperties # SharePoint Application
 
 # Start deployment
 Install-Lab
